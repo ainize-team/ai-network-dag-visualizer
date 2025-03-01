@@ -1,19 +1,16 @@
-// API 서버에서만 실행되는 gRPC 클라이언트
-// Next.js API 라우트에서 import하여 사용
-
 import AINetworkDAGClient from 'ai-network-dag-client';
 
-// 싱글톤 인스턴스를 위한 클로저
+// Closure for singleton instance
 let instance = null;
 let clientAddress = null;
 
 /**
- * AINetworkDAGClient의 싱글톤 인스턴스를 가져오거나 생성합니다.
- * @param {string} address gRPC 서버 주소
- * @returns {Object} 프로미스로 래핑된 gRPC 클라이언트 메서드
+ * Get or create a singleton instance of AINetworkDAGClient.
+ * @param {string} address gRPC server address
+ * @returns {Object} Wrapped gRPC client methods as a promise
  */
 export function getDAGClient(address) {
-  // 주소가 변경되었거나 인스턴스가 없는 경우 새로 생성
+  // Create a new instance if the address has changed or there is no instance
   if (!instance || address !== clientAddress) {
     instance = new AINetworkDAGClient(address);
     clientAddress = address;
@@ -23,11 +20,11 @@ export function getDAGClient(address) {
 }
 
 /**
- * 모의 클라이언트를 생성합니다. 개발 환경이나 실제 gRPC 서버가 없는 경우 사용
- * @returns {Object} 모의 gRPC 클라이언트 메서드
+ * Create a mock client. Use in development environments or when there is no actual gRPC server.
+ * @returns {Object} Mock gRPC client methods
  */
 export function getMockDAGClient() {
-  // 모의 데이터 저장소
+  // Mock data store
   const mockDB = new Map();
   
   return {
@@ -66,8 +63,8 @@ export function getMockDAGClient() {
   };
 }
 
-// API 경로에서 사용할 클라이언트 설정
-// 개발 환경에서는 모의 클라이언트 사용 (필요에 따라 수정)
+// Client configuration for API routes
+// Use mock client in development environment (modify as needed)
 export const getClient = (address) => {
   if (process.env.NODE_ENV === 'development' && process.env.USE_MOCK_CLIENT === 'true') {
     return getMockDAGClient();

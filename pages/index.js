@@ -13,13 +13,13 @@ export default function Home() {
   const [dataInput, setDataInput] = useState('');
   const [isConnected, setIsConnected] = useState(false);
 
-  // API 연결 초기화 함수
+  // Initialize API connection
   const initializeClient = async () => {
     setLoading(true);
     setError(null);
     
     try {
-      // API 호출을 통해 gRPC 클라이언트 초기화
+      // Initialize gRPC client via API call
       const response = await fetch('/api/dag/connect', {
         method: 'POST',
         headers: {
@@ -42,15 +42,15 @@ export default function Home() {
     }
   };
 
-  // CID로 노드 가져오기
+  // Fetch node by CID
   const fetchNodeByCid = async () => {
     if (!isConnected) {
-      setError('클라이언트가 연결되지 않았습니다. 먼저 Connect 버튼을 클릭하세요.');
+      setError('Client is not connected. Click the Connect button first.');
       return;
     }
     
     if (!fetchingCid.trim()) {
-      setError('CID를 입력해주세요');
+      setError('Please enter a CID');
       return;
     }
 
@@ -58,7 +58,7 @@ export default function Home() {
     setError(null);
     
     try {
-      // 이미 노드가 있는지 확인
+      // Check if the node already exists
       if (!nodes.some(n => n.cid === fetchingCid)) {
         const queue = [ {parent: null, cid: fetchingCid} ];
         while (queue.length > 0) {
@@ -81,7 +81,7 @@ export default function Home() {
               if (edge.parent) {
                 setLinks(prevLinks => [...prevLinks, { source: edge.parent, target: node.id }]);
               }
-              // 자식 노드들도 큐에 추가
+              // Add child nodes to the queue
               node.children.map(childCid => 
                 queue.push({parent: node.id, cid: childCid}));
             }
@@ -94,20 +94,20 @@ export default function Home() {
       setLoading(false);
       setFetchingCid('');
     } catch (err) {
-      setError(`노드를 가져오는데 실패했습니다: ${err.message}`);
+      setError(`Failed to fetch node: ${err.message}`);
       setLoading(false);
     }
   };
 
-  // 새 프롬프트 노드 추가
+  // Add new prompt node
   const addNode = async () => {
     if (!isConnected) {
-      setError('클라이언트가 연결되지 않았습니다. 먼저 Connect 버튼을 클릭하세요.');
+      setError('Client is not connected. Click the Connect button first.');
       return;
     }
     
     if (!dataInput.trim()) {
-      setError('프롬프트를 입력해주세요');
+      setError('Please enter a prompt');
       return;
     }
 
@@ -115,18 +115,18 @@ export default function Home() {
     setError(null);
     
     try {
-      // API를 통해 노드 추가
+      // Add node via API
       const contentForApi = {
         message: dataInput,
         children: []
       };
       
-      // 선택된 부모 노드가 있으면 부모 정보 추가
+      // Add parent information if a parent node is selected
       if (selectedNode && selectedNode.id) {
         contentForApi.children.push(selectedNode.cid);
       }
       
-      // API 호출로 노드 추가
+      // Add node via API call
       const response = await fetch('/api/dag/add', {
         method: 'POST',
         headers: {
@@ -168,20 +168,20 @@ export default function Home() {
       setLoading(false);
       setDataInput('');
     } catch (err) {
-      setError(`노드 추가에 실패했습니다: ${err.message}`);
+      setError(`Failed to add node: ${err.message}`);
       setLoading(false);
     }
   };
 
-  // D3 시각화 초기화
+  // Initialize D3 visualization
   useEffect(() => {
     if (nodes.length === 0 || typeof window === 'undefined') return;
 
-    // D3 시각화 설정
+    // D3 visualization setup
     const width = 800;
     const height = 600;
     
-    // 이전 SVG 제거
+    // Remove previous SVG
     d3.select("#dag-container svg").remove();
     
     const svg = d3.select("#dag-container")
@@ -191,7 +191,7 @@ export default function Home() {
       .attr("viewBox", [0, 0, width, height])
       .attr("style", "max-width: 100%; height: auto;");
     
-    // 데이터 준비
+    // Prepare data
     const nodeData = nodes.map(node => ({ ...node }));
     const linkData = links.map(link => ({ ...link }));
     
@@ -200,7 +200,7 @@ export default function Home() {
       .force("charge", d3.forceManyBody().strength(-500))
       .force("center", d3.forceCenter(width / 2, height / 2));
     
-    // 화살표 마커 정의
+    // Define arrow marker
     svg.append("defs").append("marker")
       .attr("id", "arrow")
       .attr("viewBox", "0 -5 10 10")
@@ -213,7 +213,7 @@ export default function Home() {
       .attr("fill", "#999")
       .attr("d", "M0,-5L10,0L0,5");
     
-    // 링크 그리기
+    // Draw links
     const link = svg.append("g")
       .selectAll("line")
       .data(linkData)
@@ -223,7 +223,7 @@ export default function Home() {
       .attr("stroke-width", 2)
       .attr("marker-end", "url(#arrow)");
     
-    // 노드 그룹 생성
+    // Create node group
     const node = svg.append("g")
       .selectAll(".node")
       .data(nodeData)
@@ -238,14 +238,14 @@ export default function Home() {
         event.stopPropagation();
       });
     
-    // 노드 원 그리기
+    // Draw node circles
     node.append("circle")
       .attr("r", 20)
       .attr("fill", d => d.type === 'message' ? "#66ccff" : "#ff9966")
       .attr("stroke", d => d.id === (selectedNode?.id || '') ? "#ff0000" : "#fff")
       .attr("stroke-width", d => d.id === (selectedNode?.id || '') ? 2 : 1);
     
-    // 노드 라벨
+    // Node labels
     node.append("text")
       .attr("dx", 25)
       .attr("dy", 4)
@@ -254,7 +254,7 @@ export default function Home() {
         return text.length > 20 ? text.substring(0, 17) + '...' : text;
       });
     
-    // 시뮬레이션 틱 이벤트 핸들러
+    // Simulation tick event handler
     simulation.on("tick", () => {
       link
         .attr("x1", d => d.source.x)
@@ -265,7 +265,7 @@ export default function Home() {
       node.attr("transform", d => `translate(${d.x}, ${d.y})`);
     });
     
-    // 드래그 이벤트 핸들러
+    // Drag event handlers
     function dragstarted(event) {
       if (!event.active) simulation.alphaTarget(0.3).restart();
       event.subject.fx = event.subject.x;
@@ -283,7 +283,7 @@ export default function Home() {
       event.subject.fy = null;
     }
     
-    // 캔버스 클릭 시 선택 노드 지우기
+    // Clear selected node on canvas click
     svg.on("click", () => {
       setSelectedNode(null);
     });
@@ -293,7 +293,7 @@ export default function Home() {
     };
   }, [nodes, links, selectedNode]);
 
-  // 프롬프트 JSON 파싱
+  // Parse prompt JSON
   const parseData = (data) => {
     try {
       if (typeof data === 'string') {
@@ -303,19 +303,19 @@ export default function Home() {
       }
       return null;
     } catch (err) {
-      console.error('Failed to parse  data:', err);
+      console.error('Failed to parse data:', err);
       return null;
     }
   };
 
-  // 선택된 노드 삭제
+  // Delete selected node
   const deleteSelectedNode = async () => {
     if (!selectedNode) return;
     
     setLoading(true);
     
     try {
-      // API를 통해 노드 삭제
+      // Delete node via API
       const response = await fetch(`/api/dag/delete?cid=${selectedNode.cid}`, {
         method: 'DELETE'
       });
@@ -325,15 +325,15 @@ export default function Home() {
         throw new Error(errorData.error || 'Failed to delete node');
       }
       
-      // 노드 삭제
+      // Delete node
       setNodes(prevNodes => prevNodes.filter(node => node.id !== selectedNode.id));
       
-      // 관련 링크 삭제
+      // Delete related links
       setLinks(prevLinks => prevLinks.filter(link => 
         link.source.id !== selectedNode.id && link.target.id !== selectedNode.id
       ));
       
-      // 부모 노드의 children 배열에서 삭제
+      // Remove from parent node's children array
       setNodes(prevNodes => prevNodes.map(node => {
         if (node.children && node.children.includes(selectedNode.id)) {
           return {
@@ -347,7 +347,7 @@ export default function Home() {
       setSelectedNode(null);
       setLoading(false);
     } catch (err) {
-      setError(`노드 삭제에 실패했습니다: ${err.message}`);
+      setError(`Failed to delete node: ${err.message}`);
       setLoading(false);
     }
   };
@@ -407,7 +407,7 @@ export default function Home() {
             value={dataInput}
             onChange={(e) => setDataInput(e.target.value)}
             className={styles.ainInput}
-            placeholder="Enter  text"
+            placeholder="Enter text"
             disabled={!isConnected || loading}
           />
           <button
@@ -415,7 +415,7 @@ export default function Home() {
             className={`${styles.ainButton} ${styles.ainButtonPurple}`}
             disabled={!isConnected || loading}
           >
-            Add 
+            Add
           </button>
         </div>
       </div>
@@ -491,7 +491,7 @@ export default function Home() {
             <div className={styles.ainStatItem}>Total Links: {links.length}</div>
             <div className={styles.ainStatItem}>Leaf Nodes: {nodes.filter(n => !n.children || n.children.length === 0).length}</div>
             <div className={styles.ainStatItem}>Connected Components: {
-              // 매우 단순한 연결 요소 계산, 실제로는 더 복잡한 그래프 알고리즘 필요
+              // Very simple connected component calculation, more complex graph algorithms needed in reality
               nodes.length > 0 ? '1' : '0'
             }</div>
           </div>

@@ -1,7 +1,7 @@
 import { getClient } from './client';
 
-// 서버 세션 정보 저장 (실제 프로덕션에서는 데이터베이스나 Redis 등을 사용)
-let serverAddress = 'localhost:50051'; // 기본값 설정
+// Store server session information (use a database or Redis in production)
+let serverAddress = 'localhost:50051'; // Set default value
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -15,16 +15,16 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Message is required' });
     }
 
-    // 클라이언트 가져오기
+    // Get client
     const client = getClient(serverAddress);
     
     try {
-      // 부모 노드가 있으면 먼저 가져오기
+      // If there is a parent node, fetch it first
       if (parentCid) {
         try {
           const parentNode = await client.get(parentCid);
           
-          // 자식 배열에 없으면 추가할 준비 (실제 추가는 새 노드 생성 후)
+          // Prepare to add to children array if not already present (actual addition after new node creation)
           if (!parentNode.children) {
             parentNode.children = [];
           }
@@ -34,28 +34,28 @@ export default async function handler(req, res) {
         }
       }
       
-      // 노드 콘텐츠 준비
+      // Prepare node content
       const content = {
         message,
-        // 문자열로 제공된 경우 Buffer로 변환
+        // Convert to Buffer if provided as a string
         data: typeof data === 'string' ? Buffer.from(data) : data,
         children
       };
       
-      // 노드 추가
+      // Add node
       const result = await client.add(content);
       
-      // 부모 노드가 있으면 자식으로 연결
+      // If there is a parent node, link as a child
       if (parentCid) {
         try {
           const parentNode = await client.get(parentCid);
           parentNode.children = [...(parentNode.children || []), result.cid];
           
-          // 부모 노드 업데이트 (실제 환경에 맞게 구현 필요)
-          // 여기서는 모의 구현으로 pass
+          // Update parent node (implement according to actual environment)
+          // Mock implementation here, so pass
         } catch (updateError) {
           console.warn('Failed to update parent node:', updateError);
-          // 에러를 반환하지는 않고 로그만 남김 (노드 생성은 성공했으므로)
+          // Log the error but do not return it (node creation succeeded)
         }
       }
       
