@@ -1,0 +1,281 @@
+/* AINDAGVisualizer.module.css */
+
+/* 전체 문서에 box-sizing 적용 */
+.ainContainer * {
+    box-sizing: border-box;
+  }
+  
+  /* 기본 컨테이너 스타일 */
+  .ainContainer {
+    display: flex;
+    flex-direction: column;
+    width: calc(100% - 32px);
+    height: 100%;
+    padding: 16px;
+    background-color: #f3f4f6;
+    overflow-x: hidden;
+    box-sizing: border-box;
+    margin: 0 auto;
+  }
+  
+  /* 제목 스타일 */
+  .ainTitle {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 16px;
+  }
+  
+  /* 그리드 레이아웃 */
+  .ainGridContainer {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    margin-bottom: 16px;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+  
+  /* 폼 요소 그룹 */
+  .ainFormGroup {
+    margin-bottom: 16px;
+  }
+  
+  /* 라벨 스타일 */
+  .ainLabel {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 4px;
+  }
+  
+  /* 입력 그룹 (입력 필드 + 버튼) */
+  .ainInputGroup {
+    display: flex;
+  }
+  
+  /* 입력 필드 */
+  .ainInput {
+    flex: 1;
+    padding: 8px;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+  }
+  
+  .ainInput:disabled {
+    background-color: #f3f4f6;
+    cursor: not-allowed;
+  }
+  
+  /* 버튼 기본 스타일 */
+  .ainButton {
+    margin-left: 8px;
+    background-color: #3b82f6;
+    color: white;
+    padding: 8px;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+  }
+  
+  .ainButton:hover {
+    background-color: #2563eb;
+  }
+  
+  .ainButton:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  
+  /* 버튼 색상 종류 */
+  .ainButtonBlue {
+    background-color: #3b82f6;
+  }
+  
+  .ainButtonBlue:hover {
+    background-color: #2563eb;
+  }
+  
+  .ainButtonGreen {
+    background-color: #10b981;
+  }
+  
+  .ainButtonGreen:hover {
+    background-color: #059669;
+  }
+  
+  .ainButtonPurple {
+    background-color: #8b5cf6;
+  }
+  
+  .ainButtonPurple:hover {
+    background-color: #7c3aed;
+  }
+  
+  .ainButtonRed {
+    background-color: #ef4444;
+  }
+  
+  .ainButtonRed:hover {
+    background-color: #dc2626;
+  }
+  
+  .ainButtonFull {
+    flex: 1;
+  }
+  
+  /* 에러 메시지 박스 */
+  .ainErrorBox {
+    background-color: #fee2e2;
+    border: 1px solid #f87171;
+    color: #b91c1c;
+    padding: 12px 16px;
+    border-radius: 4px;
+    margin-bottom: 16px;
+  }
+  
+  /* 플렉스 컨테이너 */
+  .ainFlexContainer {
+    display: flex;
+    flex: 1;
+    gap: 16px;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    box-sizing: border-box;
+  }
+  
+  /* 카드 컴포넌트 */
+  .ainCard {
+    flex: 1;
+    background-color: white;
+    padding: 16px;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+    min-width: 0;
+    box-sizing: border-box;
+  }
+  
+  /* 사이드 패널 */
+  .ainSidePanel {
+    width: 320px;
+    min-width: 320px;
+    max-width: 320px;
+    background-color: white;
+    padding: 16px;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+    box-sizing: border-box;
+  }
+  
+  /* DAG 컨테이너 */
+  .ainDagContainer {
+    width: 100%;
+    height: 384px;
+    border: 1px solid #d1d5db;
+    position: relative;
+    overflow: auto;
+  }
+  
+  /* 로딩 오버레이 */
+  .ainLoadingOverlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(255, 255, 255, 0.8);
+  }
+  
+  .ainLoadingText {
+    font-size: 20px;
+  }
+  
+  /* 섹션 제목 */
+  .ainSectionTitle {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  
+  /* 노드 상세 정보 */
+  .ainNodeDetail {
+    margin-bottom: 8px;
+  }
+  
+  .ainDetailLabel {
+    font-weight: 500;
+  }
+  
+  /* 프롬프트 텍스트 박스 */
+  .ainPromptBox {
+    margin-top: 4px;
+    padding: 8px;
+    background-color: #f3f4f6;
+    border-radius: 4px;
+    font-size: 14px;
+    overflow: auto;
+    max-height: 128px;
+  }
+  
+  /* 노드 선택 안 되었을 때 텍스트 */
+  .ainNoSelectionText {
+    color: #6b7280;
+  }
+  
+  /* 버튼 그룹 */
+  .ainButtonGroup {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
+  }
+  
+  /* 통계 섹션 */
+  .ainStatsSection {
+    margin-top: 24px;
+  }
+  
+  /* 통계 아이템 */
+  .ainStatItem {
+    margin-bottom: 4px;
+  }
+  
+  /* SVG 관련 스타일 */
+  .ainDagContainer svg {
+    max-width: 100%;
+    height: auto;
+    overflow: visible;
+  }
+  
+  /* 노드 드래그 시 커서 스타일 */
+  .ainDagContainer :global(.node) {
+    cursor: pointer;
+  }
+  
+  /* 노드 텍스트 스타일 */
+  .ainDagContainer :global(.node text) {
+    font-size: 12px;
+    pointer-events: none;
+  }
+  
+  /* 테블릿 반응형 */
+  @media (max-width: 1024px) {
+    .ainContainer {
+      width: 100%;
+      padding: 8px;
+    }
+    
+    .ainGridContainer {
+      grid-template-columns: 1fr;
+    }
+    
+    .ainFlexContainer {
+      flex-direction: column;
+    }
+    
+    .ainSidePanel {
+      width: 100%;
+      min-width: 100%;
+      max-width: 100%;
+    }
+  }
