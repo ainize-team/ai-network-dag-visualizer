@@ -8,10 +8,9 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [selectedNodes, setSelectedNodes] = useState([]); // Change to array
-  const [address, setAddress] = useState('localhost:50051');
   const [fetchingCid, setFetchingCid] = useState('');
   const [dataInput, setDataInput] = useState('');
-  const [isConnected, setIsConnected] = useState(false);
+  const [isConnected, setIsConnected] = useState(true); // Set initial state to true
 
   // Initialize API connection
   const initializeClient = async () => {
@@ -25,7 +24,7 @@ export default function Home() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ address }),
+        body: JSON.stringify({ address: 'localhost:50051' }),
       });
       
       const data = await response.json();
@@ -41,6 +40,10 @@ export default function Home() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    initializeClient(); // Call initializeClient on component mount
+  }, []);
 
   // Fetch node by CID
   const fetchNodeByCid = async () => {
@@ -366,66 +369,48 @@ export default function Home() {
       <h1 className={styles.ainTitle}>AIN Merkle DAG Visualizer</h1>
       
       <div className={styles.ainGridContainer}>
-        <div>
-          <label className={styles.ainLabel}>Server Address</label>
-          <div className={styles.ainInputGroup}>
-            <input
-              type="text"
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
-              className={styles.ainInput}
-              placeholder="localhost:50051"
-            />
-            <button
-              onClick={initializeClient}
-              className={`${styles.ainButton} ${isConnected ? styles.ainButtonGreen : styles.ainButtonBlue}`}
-              disabled={loading}
-            >
-              {isConnected ? 'Connected' : 'Connect'}
-            </button>
+        <div className={styles.ainInputGroupRow}>
+          <div>
+            <label className={styles.ainLabel}>Fetch Node by CID</label>
+            <div className={styles.ainInputGroup}>
+              <input
+                type="text"
+                value={fetchingCid}
+                onChange={(e) => setFetchingCid(e.target.value)}
+                className={styles.ainInput}
+                placeholder="Enter CID"
+                disabled={!isConnected || loading}
+              />
+              <button
+                onClick={fetchNodeByCid}
+                className={`${styles.ainButton} ${styles.ainButtonBlue}`}
+                disabled={!isConnected || loading}
+              >
+                Fetch
+              </button>
+            </div>
           </div>
-        </div>
-        
-        <div>
-          <label className={styles.ainLabel}>Fetch Node by CID</label>
-          <div className={styles.ainInputGroup}>
-            <input
-              type="text"
-              value={fetchingCid}
-              onChange={(e) => setFetchingCid(e.target.value)}
-              className={styles.ainInput}
-              placeholder="Enter CID"
-              disabled={!isConnected || loading}
-            />
-            <button
-              onClick={fetchNodeByCid}
-              className={`${styles.ainButton} ${styles.ainButtonBlue}`}
-              disabled={!isConnected || loading}
-            >
-              Fetch
-            </button>
+          
+          <div>
+            <label className={styles.ainLabel}>Add New Node</label>
+            <div className={styles.ainInputGroup}>
+              <input
+                type="text"
+                value={dataInput}
+                onChange={(e) => setDataInput(e.target.value)}
+                className={styles.ainInput}
+                placeholder="Enter text"
+                disabled={!isConnected || loading}
+              />
+              <button
+                onClick={addNode}
+                className={`${styles.ainButton} ${styles.ainButtonPurple}`}
+                disabled={!isConnected || loading}
+              >
+                Add
+              </button>
+            </div>
           </div>
-        </div>
-      </div>
-      
-      <div className={styles.ainFormGroup}>
-        <label className={styles.ainLabel}>Add New Node</label>
-        <div className={styles.ainInputGroup}>
-          <input
-            type="text"
-            value={dataInput}
-            onChange={(e) => setDataInput(e.target.value)}
-            className={styles.ainInput}
-            placeholder="Enter text"
-            disabled={!isConnected || loading}
-          />
-          <button
-            onClick={addNode}
-            className={`${styles.ainButton} ${styles.ainButtonPurple}`}
-            disabled={!isConnected || loading}
-          >
-            Add
-          </button>
         </div>
       </div>
       

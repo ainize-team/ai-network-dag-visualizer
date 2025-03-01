@@ -54,6 +54,12 @@
     display: flex;
   }
   
+  /* 입력 그룹 행 (Fetch Node by CID와 Add New Node를 한 줄에 배치) */
+  .ainInputGroupRow {
+    display: flex;
+    gap: 16px;
+  }
+  
   /* 입력 필드 */
   .ainInput {
     flex: 1;
