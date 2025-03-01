@@ -210,7 +210,9 @@ export default function Home() {
     const simulation = d3.forceSimulation(nodeData)
       .force("link", d3.forceLink(linkData).id(d => d.id).distance(150))
       .force("charge", d3.forceManyBody().strength(-500))
-      .force("center", d3.forceCenter(width / 2, height / 2));
+      .force("center", d3.forceCenter(width / 2, height / 2))
+      .force("x", d3.forceX().strength(0.1).x(d => Math.max(0, Math.min(800, d.x))))
+      .force("y", d3.forceY().strength(0.1).y(d => Math.max(0, Math.min(600, d.y))));
     
     // Define arrow marker
     svg.append("defs").append("marker")
