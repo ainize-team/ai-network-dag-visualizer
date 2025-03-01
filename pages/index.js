@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import * as d3 from 'd3';
+import { useRouter } from 'next/router';
 import styles from '../styles/AINDAGVisualizer.module.css';
 
 export default function Home() {
@@ -11,6 +12,7 @@ export default function Home() {
   const [fetchingCid, setFetchingCid] = useState('');
   const [dataInput, setDataInput] = useState('');
   const [isConnected, setIsConnected] = useState(true); // Set initial state to true
+  const router = useRouter();
 
   // Initialize API connection
   const initializeClient = async () => {
@@ -45,14 +47,21 @@ export default function Home() {
     initializeClient(); // Call initializeClient on component mount
   }, []);
 
+  useEffect(() => {
+    if (router.query.cid) {
+      setFetchingCid(router.query.cid);
+      fetchNodeByCid(router.query.cid);
+    }
+  }, [router.query.cid]);
+
   // Fetch node by CID
-  const fetchNodeByCid = async () => {
+  const fetchNodeByCid = async (cid) => {
     if (!isConnected) {
       setError('Client is not connected. Click the Connect button first.');
       return;
     }
     
-    if (!fetchingCid.trim()) {
+    if (!cid.trim()) {
       setError('Please enter a CID');
       return;
     }
@@ -62,8 +71,8 @@ export default function Home() {
     
     try {
       // Check if the node already exists
-      if (!nodes.some(n => n.cid === fetchingCid)) {
-        const queue = [ {parent: null, cid: fetchingCid} ];
+      if (!nodes.some(n => n.cid === cid)) {
+        const queue = [ {parent: null, cid} ];
         while (queue.length > 0) {
           const edge = queue.shift();
           try {
@@ -382,7 +391,12 @@ export default function Home() {
                 disabled={!isConnected || loading}
               />
               <button
-                onClick={fetchNodeByCid}
+                onClick={() => {
+                  router.push({
+                    pathname: '/',
+                    query: { cid: fetchingCid }
+                  });
+                }}
                 className={`${styles.ainButton} ${styles.ainButtonBlue}`}
                 disabled={!isConnected || loading}
               >
