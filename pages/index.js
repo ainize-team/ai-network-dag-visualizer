@@ -7,7 +7,7 @@ export default function Home() {
   const [links, setLinks] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [selectedNode, setSelectedNode] = useState(null);
+  const [selectedNodes, setSelectedNodes] = useState([]); // Change to array
   const [address, setAddress] = useState('localhost:50051');
   const [fetchingCid, setFetchingCid] = useState('');
   const [dataInput, setDataInput] = useState('');
@@ -121,10 +121,10 @@ export default function Home() {
         children: []
       };
       
-      // Add parent information if a parent node is selected
-      if (selectedNode && selectedNode.id) {
-        contentForApi.children.push(selectedNode.cid);
-      }
+      // Add parent information if parent nodes are selected
+      selectedNodes.forEach(node => {
+        contentForApi.children.push(node.cid);
+      });
       
       // Add node via API call
       const response = await fetch('/api/dag/add', {
@@ -151,19 +151,19 @@ export default function Home() {
         children: []
       };
 
-      if (selectedNode) {
-        newNode.children.push(selectedNode.id);
-      }
+      selectedNodes.forEach(node => {
+        newNode.children.push(node.id);
+      });
       
       setNodes(prevNodes => [...prevNodes, newNode]);
       
       // Connect Children node
-      if (selectedNode) {
+      selectedNodes.forEach(node => {
         setLinks(prevLinks => [
           ...prevLinks, 
-          { source: newNode.id, target: selectedNode.id }
+          { source: newNode.id, target: node.id }
         ]);
-      }
+      });
       
       setLoading(false);
       setDataInput('');
@@ -234,7 +234,14 @@ export default function Home() {
         .on("drag", dragged)
         .on("end", dragended))
       .on("click", (event, d) => {
-        setSelectedNode(d);
+        // Toggle node selection
+        setSelectedNodes(prevSelectedNodes => {
+          if (prevSelectedNodes.some(node => node.id === d.id)) {
+            return prevSelectedNodes.filter(node => node.id !== d.id);
+          } else {
+            return [...prevSelectedNodes, d];
+          }
+        });
         event.stopPropagation();
       });
     
@@ -242,8 +249,8 @@ export default function Home() {
     node.append("circle")
       .attr("r", 20)
       .attr("fill", d => d.type === 'message' ? "#66ccff" : "#ff9966")
-      .attr("stroke", d => d.id === (selectedNode?.id || '') ? "#ff0000" : "#fff")
-      .attr("stroke-width", d => d.id === (selectedNode?.id || '') ? 2 : 1);
+      .attr("stroke", d => selectedNodes.some(node => node.id === d.id) ? "#ff0000" : "#fff")
+      .attr("stroke-width", d => selectedNodes.some(node => node.id === d.id) ? 2 : 1);
     
     // Node labels
     node.append("text")
@@ -283,15 +290,15 @@ export default function Home() {
       event.subject.fy = null;
     }
     
-    // Clear selected node on canvas click
+    // Clear selected nodes on canvas click
     svg.on("click", () => {
-      setSelectedNode(null);
+      setSelectedNodes([]);
     });
     
     return () => {
       simulation.stop();
     };
-  }, [nodes, links, selectedNode]);
+  }, [nodes, links, selectedNodes]);
 
   // Parse prompt JSON
   const parseData = (data) => {
@@ -308,46 +315,48 @@ export default function Home() {
     }
   };
 
-  // Delete selected node
-  const deleteSelectedNode = async () => {
-    if (!selectedNode) return;
+  // Delete selected nodes
+  const deleteSelectedNodes = async () => {
+    if (selectedNodes.length === 0) return;
     
     setLoading(true);
     
     try {
-      // Delete node via API
-      const response = await fetch(`/api/dag/delete?cid=${selectedNode.cid}`, {
-        method: 'DELETE'
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to delete node');
+      for (const selectedNode of selectedNodes) {
+        // Delete node via API
+        const response = await fetch(`/api/dag/delete?cid=${selectedNode.cid}`, {
+          method: 'DELETE'
+        });
+        
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Failed to delete node');
+        }
+        
+        // Delete node
+        setNodes(prevNodes => prevNodes.filter(node => node.id !== selectedNode.id));
+        
+        // Delete related links
+        setLinks(prevLinks => prevLinks.filter(link => 
+          link.source.id !== selectedNode.id && link.target.id !== selectedNode.id
+        ));
+        
+        // Remove from parent node's children array
+        setNodes(prevNodes => prevNodes.map(node => {
+          if (node.children && node.children.includes(selectedNode.id)) {
+            return {
+              ...node,
+              children: node.children.filter(childId => childId !== selectedNode.id)
+            };
+          }
+          return node;
+        }));
       }
       
-      // Delete node
-      setNodes(prevNodes => prevNodes.filter(node => node.id !== selectedNode.id));
-      
-      // Delete related links
-      setLinks(prevLinks => prevLinks.filter(link => 
-        link.source.id !== selectedNode.id && link.target.id !== selectedNode.id
-      ));
-      
-      // Remove from parent node's children array
-      setNodes(prevNodes => prevNodes.map(node => {
-        if (node.children && node.children.includes(selectedNode.id)) {
-          return {
-            ...node,
-            children: node.children.filter(childId => childId !== selectedNode.id)
-          };
-        }
-        return node;
-      }));
-      
-      setSelectedNode(null);
+      setSelectedNodes([]);
       setLoading(false);
     } catch (err) {
-      setError(`Failed to delete node: ${err.message}`);
+      setError(`Failed to delete nodes: ${err.message}`);
       setLoading(false);
     }
   };
@@ -440,49 +449,53 @@ export default function Home() {
         <div className={styles.ainSidePanel}>
           <h2 className={styles.ainSectionTitle}>Node Details</h2>
           
-          {selectedNode ? (
+          {selectedNodes.length > 0 ? (
             <div>
-              <div className={styles.ainNodeDetail}>
-                <span className={styles.ainDetailLabel}>ID:</span> {selectedNode.id}
-              </div>
-              <div className={styles.ainNodeDetail}>
-                <span className={styles.ainDetailLabel}>CID:</span> {selectedNode.cid}
-              </div>
-              <div className={styles.ainNodeDetail}>
-                <span className={styles.ainDetailLabel}>Message:</span> {selectedNode.message}
-              </div>
-              
-              {selectedNode.data && (
-                <div className={styles.ainNodeDetail}>
-                  <span className={styles.ainDetailLabel}>Data:</span>
-                  <div className={styles.ainDataBox}>
-                    {(() => {
-                      const data = parseData(selectedNode.data);
-                      if (data && data.messages) {
-                        return data.messages.find(m => m.role === 'user')?.content || 'No data content';
-                      }
-                      return 'Invalid data format';
-                    })()}
+              {selectedNodes.map(selectedNode => (
+                <div key={selectedNode.id}>
+                  <div className={styles.ainNodeDetail}>
+                    <span className={styles.ainDetailLabel}>ID:</span> {selectedNode.id}
+                  </div>
+                  <div className={styles.ainNodeDetail}>
+                    <span className={styles.ainDetailLabel}>CID:</span> {selectedNode.cid}
+                  </div>
+                  <div className={styles.ainNodeDetail}>
+                    <span className={styles.ainDetailLabel}>Message:</span> {selectedNode.message}
+                  </div>
+                  
+                  {selectedNode.data && (
+                    <div className={styles.ainNodeDetail}>
+                      <span className={styles.ainDetailLabel}>Data:</span>
+                      <div className={styles.ainDataBox}>
+                        {(() => {
+                          const data = parseData(selectedNode.data);
+                          if (data && data.messages) {
+                            return data.messages.find(m => m.role === 'user')?.content || 'No data content';
+                          }
+                          return 'Invalid data format';
+                        })()}
+                      </div>
+                    </div>
+                  )}
+                  
+                  <div className={styles.ainNodeDetail}>
+                    <span className={styles.ainDetailLabel}>Children:</span> {selectedNode.children?.length || 0}
                   </div>
                 </div>
-              )}
-              
-              <div className={styles.ainNodeDetail}>
-                <span className={styles.ainDetailLabel}>Children:</span> {selectedNode.children?.length || 0}
-              </div>
+              ))}
               
               <div className={styles.ainButtonGroup}>
                 <button
-                  onClick={deleteSelectedNode}
+                  onClick={deleteSelectedNodes}
                   className={`${styles.ainButton} ${styles.ainButtonRed} ${styles.ainButtonFull}`}
                   disabled={loading}
                 >
-                  Delete Node
+                  Delete Nodes
                 </button>
               </div>
             </div>
           ) : (
-            <div className={styles.ainNoSelectionText}>Select a node to view details</div>
+            <div className={styles.ainNoSelectionText}>Select nodes to view details</div>
           )}
           
           <div className={styles.ainStatsSection}>
