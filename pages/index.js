@@ -73,8 +73,11 @@ export default function Home() {
       // Check if the node already exists
       if (!nodes.some(n => n.cid === cid)) {
         const queue = [ {parent: null, cid} ];
+        const visitedCids = new Set();
+
         while (queue.length > 0) {
           const edge = queue.shift();
+          visitedCids.add(edge.cid);
           try {
             const nodeResponse = await fetch(`/api/dag/get?cid=${edge.cid}`);
             const nodeResult = await nodeResponse.json();
@@ -91,11 +94,14 @@ export default function Home() {
               
               setNodes(prevNodes => [...prevNodes, node]);
               if (edge.parent) {
-                setLinks(prevLinks => [...prevLinks, { source: edge.parent, target: node.id }]);
+                  setLinks(prevLinks => [...prevLinks, { source: edge.parent, target: node.id }]);
               }
               // Add child nodes to the queue
-              node.children.map(childCid => 
-                queue.push({parent: node.id, cid: childCid}));
+              node.children.map(childCid => {
+                if (!visitedCids.has(childCid) && !nodes.some(n => n.cid === childCid)) {
+                  queue.push({parent: node.id, cid: childCid})
+                }
+              });
             }
           } catch (childErr) {
             console.error(`Failed to fetch child node ${edge.cid}:`, childErr);
