@@ -176,8 +176,10 @@
   
   /* DAG 컨테이너 */
   .ainDagContainer {
-    width: 100%;
-    height: 384px;
+    min-width: 800px; /* Minimum width */
+    min-height: 600px; /* Minimum height */
+    width: 100%; /* Allow to grow */
+    height: 100%; /* Allow to grow */
     border: 1px solid #d1d5db;
     position: relative;
     overflow: auto;
